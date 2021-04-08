@@ -12,13 +12,29 @@ A client for Assembly Payments for Typescript/Javascript
 
 A typescript swagger generated client for Assembly Payments
 
-## Install
+# Usage
+
+yarn
+
+```sh
+yarn add assembly-payments
+```
+
+npm
+
+```sh
+npm install --save assembly-payments
+```
+
+## Contributing
+
+### Install
 
 ```sh
 yarn install
 ```
 
-## Run tests
+### Run tests
 
 ```sh
 yarn run test
