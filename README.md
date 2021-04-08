@@ -8,9 +8,9 @@
   </a>
 </p>
 
-A client for Assembly Payments for Typescript/Javascript
+An (unofficial) Assembly Payments Typescript/Javascript client
 
-A typescript swagger generated client for Assembly Payments
+swagger generated - https://reference.assemblypayments.com/
 
 # Usage
 
