@@ -1860,9 +1860,9 @@ export interface ReleasePaymentRequestBody {
      */
     flag_release?: boolean;
 }
+import { AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";
 export declare type QueryParamsType = Record<string | number, any>;
-export declare type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
-export interface FullRequestParams extends Omit<RequestInit, "body"> {
+export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
     /** set parameter to `true` for call `securityWorker` for this request */
     secure?: boolean;
     /** request path */
@@ -1872,49 +1872,31 @@ export interface FullRequestParams extends Omit<RequestInit, "body"> {
     /** query params */
     query?: QueryParamsType;
     /** format of response (i.e. response.json() -> format: "json") */
-    format?: ResponseFormat;
+    format?: ResponseType;
     /** request body */
     body?: unknown;
-    /** base url */
-    baseUrl?: string;
-    /** request cancellation token */
-    cancelToken?: CancelToken;
 }
 export declare type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
-export interface ApiConfig<SecurityDataType = unknown> {
-    baseUrl?: string;
-    baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-    securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
-    customFetch?: typeof fetch;
+export interface ApiConfig<SecurityDataType = unknown> extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
+    securityWorker?: (securityData: SecurityDataType | null) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
+    secure?: boolean;
+    format?: ResponseType;
 }
-export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
-    data: D;
-    error: E;
-}
-declare type CancelToken = Symbol | string | number;
 export declare enum ContentType {
     Json = "application/json",
     FormData = "multipart/form-data",
     UrlEncoded = "application/x-www-form-urlencoded"
 }
 export declare class HttpClient<SecurityDataType = unknown> {
-    baseUrl: string;
+    private instance;
     private securityData;
     private securityWorker?;
-    private abortControllers;
-    private customFetch;
-    private baseApiParams;
-    constructor(apiConfig?: ApiConfig<SecurityDataType>);
+    private secure?;
+    private format?;
+    constructor({ securityWorker, secure, format, ...axiosConfig }?: ApiConfig<SecurityDataType>);
     setSecurityData: (data: SecurityDataType | null) => void;
-    private addQueryParam;
-    private addArrayQueryParam;
-    protected toQueryString(rawQuery?: QueryParamsType): string;
-    protected addQueryParams(rawQuery?: QueryParamsType): string;
-    private contentFormatters;
     private mergeRequestParams;
-    private createAbortSignal;
-    abortRequest: (cancelToken: CancelToken) => void;
-    request: <T = any, E = any>({ body, secure, path, type, query, format, baseUrl, cancelToken, ...params }: FullRequestParams) => Promise<HttpResponse<T, E>>;
+    request: <T = any, _E = any>({ secure, path, type, query, format, body, ...params }: FullRequestParams) => Promise<AxiosResponse<T>>;
 }
 /**
  * @title Assembly API
@@ -1935,7 +1917,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/tokens
          * @secure
          */
-        token: (data: TokensRequestBody, params?: RequestParams) => Promise<HttpResponse<TokensResponse, Error>>;
+        token: (data: TokensRequestBody, params?: RequestParams) => Promise<AxiosResponse<TokensResponse>>;
     };
     addresses: {
         /**
@@ -1947,7 +1929,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/addresses/{id}
          * @secure
          */
-        showAddress: (id: string, params?: RequestParams) => Promise<HttpResponse<Address, any>>;
+        showAddress: (id: string, params?: RequestParams) => Promise<AxiosResponse<Address>>;
     };
     bankAccounts: {
         /**
@@ -1959,7 +1941,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/bank_accounts/{id}
          * @secure
          */
-        showBankAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<BankAccount, any>>;
+        showBankAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<BankAccount>>;
         /**
          * @description Redact a **Bank Account** using a given `:id`. Redacted **Bank Accounts** can no longer be used as a funding source or a Disbursement destination.
          *
@@ -1969,7 +1951,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request DELETE:/bank_accounts/{id}
          * @secure
          */
-        redactBankAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<BankAccountDeletion, any>>;
+        redactBankAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<BankAccountDeletion>>;
         /**
          * @description When penny verification is enabled, this API call sends two penny transactions to the specified bank account for verification. **Note**: This API call is not required when your platform has automatic penny verification enabled, as this is instead done by the system. Penny credit verification is only supported for US platforms.
          *
@@ -1979,7 +1961,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/bank_accounts/{id}/penny_send
          * @secure
          */
-        sendPennyAmount: (id: string, params?: RequestParams) => Promise<HttpResponse<BankAccount, any>>;
+        sendPennyAmount: (id: string, params?: RequestParams) => Promise<AxiosResponse<BankAccount>>;
         /**
          * @description Create a **Bank Account** to be used as either a funding source or a Disbursement destination. Store the returned `:id` and use it for a `make_payment` **Item Action** call. The `:id` is also referred to as a `token` when involving **Bank Accounts**.
          *
@@ -1989,7 +1971,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/bank_accounts
          * @secure
          */
-        createBankAccount: (data: BankAccountRequestBody, params?: RequestParams) => Promise<HttpResponse<BankAccount, any>>;
+        createBankAccount: (data: BankAccountRequestBody, params?: RequestParams) => Promise<AxiosResponse<BankAccount>>;
         /**
          * @description When penny verification is enabled, this API call verifies the two penny transactions that were sent to a specified bank account using **Send Penny Amount**. **Note**: This API call requires you to provide a front-end interface to your end-users into which they can input the penny amounts required for a successful verification. Your front-end interface should then pass the information into this API call. Penny credit verification is only supported for US platforms.
          *
@@ -1999,7 +1981,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/bank_accounts/{id}/penny_verify
          * @secure
          */
-        verifyPennyAmount: (id: string, data: PennyVerifyRequestBody, params?: RequestParams) => Promise<HttpResponse<BankAccount, any>>;
+        verifyPennyAmount: (id: string, data: PennyVerifyRequestBody, params?: RequestParams) => Promise<AxiosResponse<BankAccount>>;
         /**
          * @description Show the **User** the **Bank Account** is associated with using a given `:id`.
          *
@@ -2009,7 +1991,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/bank_accounts/{id}/users
          * @secure
          */
-        showBankAccountUser: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showBankAccountUser: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
     };
     tools: {
         /**
@@ -2023,7 +2005,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          */
         validateRoutingNumber: (query: {
             routing_number: string;
-        }, params?: RequestParams) => Promise<HttpResponse<SingleRoutingNumber, any>>;
+        }, params?: RequestParams) => Promise<AxiosResponse<SingleRoutingNumber>>;
         /**
          * @description Displays a health check of the Assembly service.
          *
@@ -2033,7 +2015,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/tools/status
          * @secure
          */
-        healthCheck: (params?: RequestParams) => Promise<HttpResponse<ToolsStatus, any>>;
+        healthCheck: (params?: RequestParams) => Promise<AxiosResponse<ToolsStatus>>;
     };
     bpayAccounts: {
         /**
@@ -2045,7 +2027,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/bpay_accounts/{id}
          * @secure
          */
-        showBPayAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<BpayAccount, any>>;
+        showBPayAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<BpayAccount>>;
         /**
          * @description Redact a **BPay Account** using a given `:id`. Redacted **BPay Accounts** can no longer be used as a Disbursement destination.
          *
@@ -2055,7 +2037,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request DELETE:/bpay_accounts/{id}
          * @secure
          */
-        redactBPayAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<BpayAccountDeletion, any>>;
+        redactBPayAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<BpayAccountDeletion>>;
         /**
          * @description Create a **BPay Account** to be used as a Disbursement destination.
          *
@@ -2065,7 +2047,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/bpay_accounts
          * @secure
          */
-        createBPayAccount: (data: BpayAccountRequestBody, params?: RequestParams) => Promise<HttpResponse<BpayAccount, any>>;
+        createBPayAccount: (data: BpayAccountRequestBody, params?: RequestParams) => Promise<AxiosResponse<BpayAccount>>;
         /**
          * @description Show the **User** the **BPay Account** is associated with using a given `:id`.
          *
@@ -2075,7 +2057,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/bpay_accounts/{id}/users
          * @secure
          */
-        showBPayAccountUser: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showBPayAccountUser: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
     };
     walletAccounts: {
         /**
@@ -2087,7 +2069,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/wallet_accounts/{id}/bill_payment
          * @secure
          */
-        billPayment: (id: string, data: BillPaymentRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleDisbursement, any>>;
+        billPayment: (id: string, data: BillPaymentRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleDisbursement>>;
         /**
          * @description Show the **User** the **Wallet Account** is associated with using a given `:id`.
          *
@@ -2097,7 +2079,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/wallet_accounts/{id}/users
          * @secure
          */
-        showWalletAccountUser: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showWalletAccountUser: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Withdraw funds from a **Wallet Account** to a specified disbursement account.
          *
@@ -2107,7 +2089,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/wallet_accounts/{id}/withdraw
          * @secure
          */
-        withdrawFunds: (id: string, data: WithdrawRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleDisbursement, any>>;
+        withdrawFunds: (id: string, data: WithdrawRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleDisbursement>>;
         /**
          * @description Deposit funds to a **Wallet Account** from a specified payment account.
          *
@@ -2117,7 +2099,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/wallet_accounts/{id}/deposit
          * @secure
          */
-        depositFunds: (id: string, data: DepositRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleDisbursement, any>>;
+        depositFunds: (id: string, data: DepositRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleDisbursement>>;
         /**
          * @description Show details of a specific **Wallet Account** using a given `:id.`
          *
@@ -2127,7 +2109,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/wallet_accounts/{id}
          * @secure
          */
-        showWalletAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<WalletAccount, any>>;
+        showWalletAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<WalletAccount>>;
         /**
          * @description Show NPP details of a specific **Wallet Account** using a given `:id.`
          *
@@ -2137,7 +2119,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/wallet_accounts/{id}/npp_details
          * @secure
          */
-        showWalletAccountNppDetails: (id: string, params?: RequestParams) => Promise<HttpResponse<WalletAccountNppDetails, any>>;
+        showWalletAccountNppDetails: (id: string, params?: RequestParams) => Promise<AxiosResponse<WalletAccountNppDetails>>;
         /**
          * @description Show BPAY details of a specific **Wallet Account** using a given `:id.`
          *
@@ -2147,7 +2129,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/wallet_accounts/{id}/bpay_details
          * @secure
          */
-        showWalletAccountNbpayDetails: (id: string, params?: RequestParams) => Promise<HttpResponse<WalletAccountBpayDetails, any>>;
+        showWalletAccountNbpayDetails: (id: string, params?: RequestParams) => Promise<AxiosResponse<WalletAccountBpayDetails>>;
     };
     users: {
         /**
@@ -2159,7 +2141,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/users/{id}/bpay_accounts
          * @secure
          */
-        listUserBPayAccounts: (id: string, params?: RequestParams) => Promise<HttpResponse<ListBpayAccounts, any>>;
+        listUserBPayAccounts: (id: string, params?: RequestParams) => Promise<AxiosResponse<ListBpayAccounts>>;
         /**
          * @description Show the user’s active card account using a given `:id`.
          *
@@ -2169,7 +2151,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/users/{id}/card_accounts
          * @secure
          */
-        showUserCardAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<CardAccount, any>>;
+        showUserCardAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<CardAccount>>;
         /**
          * @description Show details of a specific User using a given `:id`.
          *
@@ -2179,7 +2161,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/users/{id}
          * @secure
          */
-        showUser: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showUser: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Update an existing **User’s** attributes using a given `:id`.
          *
@@ -2189,7 +2171,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/users/{id}
          * @secure
          */
-        updateUser: (id: string, data: UpdateUserRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        updateUser: (id: string, data: UpdateUserRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Sets a user’s verification state to `approved` on pre-live given the **User** `:id`. Ensure that a **User** has the required user verification information before using this call, otherwise the call will fail. **Note**: This API call will only work in our pre-live environment. The user verification workflow holds for all users in production.
          *
@@ -2199,7 +2181,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/users/{id}/identity_verified
          * @secure
          */
-        verifyUser: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        verifyUser: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Shows the user’s active bank account using a given `:id`.
          *
@@ -2209,7 +2191,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/users/{id}/bank_accounts
          * @secure
          */
-        showUserBankAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<BankAccount, any>>;
+        showUserBankAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<BankAccount>>;
         /**
          * @description Set the **User’s Disbursement Account** using a given **User** `:id` and a **Bank Account** `:account_id`.
          *
@@ -2219,7 +2201,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/users/{id}/disbursement_account
          * @secure
          */
-        setUserDisbursementAccount: (id: string, data: BankAccountIdRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        setUserDisbursementAccount: (id: string, data: BankAccountIdRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Retrieve an ordered and paginated list of existing **Users**.
          *
@@ -2233,7 +2215,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
             limit?: number;
             offset?: number;
             search: string;
-        }, params?: RequestParams) => Promise<HttpResponse<Users, any>>;
+        }, params?: RequestParams) => Promise<AxiosResponse<Users>>;
         /**
          * @description Create a **User**. **Users** can be associated with **Items** either as a buyer or a seller. **Users** can’t be both the buyer and seller for the same **Item**. **Note**: Some parameters are required for user verification. See our guide on [Onboarding a Payout User/Seller](https://developer.assemblypayments.com/docs/onboarding-a-pay-out-user) for more information.
          *
@@ -2243,7 +2225,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/users
          * @secure
          */
-        createUser: (data: UserRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        createUser: (data: UserRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Retrieve an ordered and paginated list of existing **Items** the **User** is associated with using a given `:id`.
          *
@@ -2256,7 +2238,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
         listUserItems: (id: string, query?: {
             offset?: number | undefined;
             limit?: number | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<Items, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<Items>>;
         /**
          * @description Show the **User’s Wallet Account** using a given `:id`.
          *
@@ -2266,7 +2248,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/users/{id}/wallet_accounts
          * @secure
          */
-        showUserWalletAccounts: (id: string, params?: RequestParams) => Promise<HttpResponse<WalletAccount, any>>;
+        showUserWalletAccounts: (id: string, params?: RequestParams) => Promise<AxiosResponse<WalletAccount>>;
     };
     callbacks: {
         /**
@@ -2278,7 +2260,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/callbacks/{id}
          * @secure
          */
-        showCallback: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleCallback, any>>;
+        showCallback: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleCallback>>;
         /**
          * @description Delete an existing Callback using a given `:id`.
          *
@@ -2288,7 +2270,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request DELETE:/callbacks/{id}
          * @secure
          */
-        deleteCallback: (id: string, params?: RequestParams) => Promise<HttpResponse<CallbackDeletion, any>>;
+        deleteCallback: (id: string, params?: RequestParams) => Promise<AxiosResponse<CallbackDeletion>>;
         /**
          * @description Update an existing **Callback** using a given `:id`. You can change the `URL`, the `object_type` and whether the **Callback** is `enabled` or `disabled`.
          *
@@ -2298,7 +2280,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/callbacks/{id}
          * @secure
          */
-        updateCallback: (id: string, data: CallbackRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleCallback, any>>;
+        updateCallback: (id: string, data: CallbackRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleCallback>>;
         /**
          * @description Retrieve an ordered and paginated list of the responses garnered from a callback using a given `:id`.
          *
@@ -2311,7 +2293,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
         listCallbackResponse: (id: string, query?: {
             limit?: number | undefined;
             offset?: number | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<ListCallbackResponses, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<ListCallbackResponses>>;
         /**
          * @description Show details of a specific **Callback** response using a given `:id`.
          *
@@ -2321,7 +2303,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/callbacks/{callback_id}/responses/{id}
          * @secure
          */
-        showCallbackResponse: (callbackId: string, id: string, params?: RequestParams) => Promise<HttpResponse<SingleCallbackResponse, any>>;
+        showCallbackResponse: (callbackId: string, id: string, params?: RequestParams) => Promise<AxiosResponse<SingleCallbackResponse>>;
         /**
          * @description Retrieve an ordered and paginated list of all created **Callbacks**.
          *
@@ -2335,7 +2317,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
             limit?: number | undefined;
             offset?: number | undefined;
             filter?: string | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<Callbacks, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<Callbacks>>;
         /**
          * @description Create a **Callback** to notify you at the `URL` when the `object_type` changes
          *
@@ -2345,7 +2327,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/callbacks
          * @secure
          */
-        createCallback: (data: CallbackRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleCallback, any>>;
+        createCallback: (data: CallbackRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleCallback>>;
     };
     cardAccounts: {
         /**
@@ -2357,7 +2339,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/card_accounts
          * @secure
          */
-        createCardAccount: (data: CardAccountRequestBody, params?: RequestParams) => Promise<HttpResponse<CardAccount, any>>;
+        createCardAccount: (data: CardAccountRequestBody, params?: RequestParams) => Promise<AxiosResponse<CardAccount>>;
         /**
          * @description Show the **User** the Credit **Card Account** is associated with using a given `:id`.
          *
@@ -2367,7 +2349,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/card_accounts/{id}/users
          * @secure
          */
-        showCardAccountUser: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showCardAccountUser: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Where pre-authorization is enabled on a platform, verifies a **Card Account** when a **Card Account** is successfully verified, its verification status is `verified`.
          *
@@ -2377,7 +2359,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/card_accounts/{id}/verify
          * @secure
          */
-        verifyCard: (id: string, data: CardAccountVerifyRequestBody, params?: RequestParams) => Promise<HttpResponse<CardAccount, any>>;
+        verifyCard: (id: string, data: CardAccountVerifyRequestBody, params?: RequestParams) => Promise<AxiosResponse<CardAccount>>;
         /**
          * @description Show details of a specific Credit **Card Account** using a given `:id`. You can toggle the card account number display to show the first 6 digits in addition to the last 4 digits. Contact Assembly if you want to toggle the card account display.
          *
@@ -2387,7 +2369,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/card_accounts/{id}
          * @secure
          */
-        showCardAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<CardAccount, any>>;
+        showCardAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<CardAccount>>;
         /**
          * @description Redact a Credit **Card Account** using a given `:id`. Redacted Credit **Card Accounts** can no longer be used as a funding source.
          *
@@ -2397,7 +2379,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request DELETE:/card_accounts/{id}
          * @secure
          */
-        redactCardAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<CardAccountDeletion, any>>;
+        redactCardAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<CardAccountDeletion>>;
     };
     companies: {
         /**
@@ -2412,7 +2394,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
         listCompanies: (query?: {
             limit?: number | undefined;
             offset?: number | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<SimpleCompanies, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<SimpleCompanies>>;
         /**
          * @description Create a **Company** associated with the **User** using a given `user_id`. **Note**: Some parameters are required for user verification. See our guide on [Onboarding a Payout User/Seller](https://developer.assemblypayments.com/docs/onboarding-a-pay-out-user) for more information.
          *
@@ -2422,7 +2404,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/companies
          * @secure
          */
-        createCompany: (data: CompanyRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleCompany, any>>;
+        createCompany: (data: CompanyRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleCompany>>;
         /**
          * @description Show details of a specific **Company** using a given `:id`.
          *
@@ -2432,7 +2414,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/companies/{id}
          * @secure
          */
-        showCompany: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleCompany, any>>;
+        showCompany: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleCompany>>;
         /**
          * @description Update an existing **Company** attributes using a given `:id`.
          *
@@ -2442,7 +2424,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/companies/{id}
          * @secure
          */
-        updateCompany: (id: string, data: CompanyRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleCompany, any>>;
+        updateCompany: (id: string, data: CompanyRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleCompany>>;
     };
     directDebitAuthorities: {
         /**
@@ -2458,7 +2440,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
             account_id: string;
             limit?: number;
             offset?: number;
-        }, params?: RequestParams) => Promise<HttpResponse<ListDirectDebitAuthorities, any>>;
+        }, params?: RequestParams) => Promise<AxiosResponse<ListDirectDebitAuthorities>>;
         /**
          * @description Create a **Direct Debit Authority** associated with a **Bank Account**. The **Direct Debit Authority** is required to use a **Bank Account** as a funding source (Direct Debit/ACH).
          *
@@ -2468,7 +2450,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/direct_debit_authorities
          * @secure
          */
-        createDirectDebitAuthority: (data: DirectDebitAuthorityRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleDirectDebitAuthority, any>>;
+        createDirectDebitAuthority: (data: DirectDebitAuthorityRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleDirectDebitAuthority>>;
         /**
          * @description Show details of a specific **Direct Debit Authority** using a given `:id`.
          *
@@ -2478,7 +2460,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/direct_debit_authorities/{id}
          * @secure
          */
-        showDirectDebitAuthority: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleDirectDebitAuthority, any>>;
+        showDirectDebitAuthority: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleDirectDebitAuthority>>;
     };
     fees: {
         /**
@@ -2493,7 +2475,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
         listFees: (query?: {
             limit?: number | undefined;
             offset?: number | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<Fees, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<Fees>>;
         /**
          * @description Create a **Fee** to be associated with an **Item**. **Fees** will add or subtract from the **Item** amount based on the **User**, payment type or Disbursement account type. **Fees** can be `Fixed` or `Percentage` based. **Fees** can be capped, have a maximum amount and/or a minimum amount.
          *
@@ -2503,7 +2485,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/fees
          * @secure
          */
-        createFee: (data: FeeRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleFee, any>>;
+        createFee: (data: FeeRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleFee>>;
         /**
          * @description Show details of a specific **Fee** using a given `:id`. If the `item_amount` is specified, the response also shows the `calculated_fee` based on a percentage of the `item_amount`.
          *
@@ -2515,7 +2497,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          */
         showFee: (id: string, query: {
             item_amount: number;
-        }, params?: RequestParams) => Promise<HttpResponse<SingleFee, any>>;
+        }, params?: RequestParams) => Promise<AxiosResponse<SingleFee>>;
     };
     charges: {
         /**
@@ -2530,7 +2512,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
         listCharges: (query?: {
             limit?: number | undefined;
             offset?: number | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<Charges, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<Charges>>;
         /**
          * @description Create a **Charge**. **Charges** require a specified **Card Account** or **Bank Account**. You may pass through an existing **User**, or define the `user_id` of the new user that will be associated with the **Charge** and the provided Account. The `user_id` can be left blank if you wish for a new user to be created for the **Charge**, or specified if you wish for a new **User** to be created with the passed `user_id`.
          *
@@ -2540,7 +2522,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/charges
          * @secure
          */
-        createCharge: (data: ChargeRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleCharge, any>>;
+        createCharge: (data: ChargeRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleCharge>>;
         /**
          * @description Show details of a specific **Charge** using a given `:id`.
          *
@@ -2550,7 +2532,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/charges/{id}
          * @secure
          */
-        showCharge: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleCharge, any>>;
+        showCharge: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleCharge>>;
         /**
          * @description Show status of a specific **Charge** using a given `:id`.
          *
@@ -2560,7 +2542,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/charges/{id}/status
          * @secure
          */
-        showChargeStatus: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleChargeStatus, any>>;
+        showChargeStatus: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleChargeStatus>>;
         /**
          * @description Show the buyer **User** associated with the **Charge** using a given `:id`.
          *
@@ -2570,7 +2552,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/charges/{id}/buyers
          * @secure
          */
-        showChargeBuyer: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showChargeBuyer: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
     };
     marketplace: {
         /**
@@ -2582,7 +2564,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/marketplace
          * @secure
          */
-        showMarketplace: (params?: RequestParams) => Promise<HttpResponse<Marketplace, any>>;
+        showMarketplace: (params?: RequestParams) => Promise<AxiosResponse<Marketplace>>;
     };
     tokenAuths: {
         /**
@@ -2594,13 +2576,13 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/token_auths
          * @secure
          */
-        generateToken: (data: TokenAuthRequestBody, params?: RequestParams) => Promise<HttpResponse<{
+        generateToken: (data: TokenAuthRequestBody, params?: RequestParams) => Promise<AxiosResponse<{
             token_auth?: {
                 token_type?: string | undefined;
                 token?: string | undefined;
                 user_id?: string | undefined;
             } | undefined;
-        }, any>>;
+        }>>;
     };
     transactions: {
         /**
@@ -2621,7 +2603,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
             transaction_type_method?: "direct_debit" | "credit_card" | "npp" | "bpay" | "wallet_account_transfer" | "direct_credit" | "wire_transfer" | "misc" | undefined;
             direction?: "debit" | "credit" | undefined;
             user_id?: string | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<Transactions, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<Transactions>>;
         /**
          * @description Show the **Bank Account** associated with the **Transaction** using a given `:id`.
          *
@@ -2631,7 +2613,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/transactions/{id}/bank_accounts
          * @secure
          */
-        showTransactionBankAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<BankAccount, any>>;
+        showTransactionBankAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<BankAccount>>;
         /**
          * @description Show details of a specific **Transaction** using a given `:id`.
          *
@@ -2641,7 +2623,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/transactions/{id}
          * @secure
          */
-        showTransaction: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleTransaction, any>>;
+        showTransaction: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleTransaction>>;
         /**
          * @description Show the **Card Account** associated with the **Transaction** using a given `:id`.
          *
@@ -2651,7 +2633,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/transactions/{id}/card_accounts
          * @secure
          */
-        showTransactionCardAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<CardAccount, any>>;
+        showTransactionCardAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<CardAccount>>;
         /**
          * @description Show the **Fees** associated with the **Transaction** using a given `:id`.
          *
@@ -2661,7 +2643,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/transactions/{id}/fees
          * @secure
          */
-        showTransactionFees: (id: string, params?: RequestParams) => Promise<HttpResponse<Fees, any>>;
+        showTransactionFees: (id: string, params?: RequestParams) => Promise<AxiosResponse<Fees>>;
         /**
          * @description Show the **Wallet Account** associated with the **Transaction** using a given `:id`.
          *
@@ -2671,7 +2653,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/transactions/{id}/wallet_accounts
          * @secure
          */
-        showTransactionWalletAccount: (id: string, params?: RequestParams) => Promise<HttpResponse<WalletAccount, any>>;
+        showTransactionWalletAccount: (id: string, params?: RequestParams) => Promise<AxiosResponse<WalletAccount>>;
         /**
          * @description Show the **User** associated with the **Transaction** using a given `:id`.
          *
@@ -2681,7 +2663,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/transactions/{id}/users
          * @secure
          */
-        showTransactionUser: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showTransactionUser: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
     };
     batchTransactions: {
         /**
@@ -2705,7 +2687,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
             created_before?: string | undefined;
             created_after?: string | undefined;
             disbursement_bank?: string | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<ListBatchTransactions, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<ListBatchTransactions>>;
         /**
          * @description Get a batch transaction using its ID
          *
@@ -2715,7 +2697,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/batch_transactions/{id}
          * @secure
          */
-        showBatchTransaction: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleBatchTransaction, any>>;
+        showBatchTransaction: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleBatchTransaction>>;
     };
     disbursements: {
         /**
@@ -2731,7 +2713,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
             limit?: number | undefined;
             offset?: number | undefined;
             batch_id?: string | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<Disbursements, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<Disbursements>>;
         /**
          * @description Get a disbursment using its ID
          *
@@ -2741,7 +2723,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/disbursements/{id}
          * @secure
          */
-        showDisbursement: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleDisbursement, any>>;
+        showDisbursement: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleDisbursement>>;
         /**
          * @description Get all the transactions relating to a disbursment ID
          *
@@ -2754,7 +2736,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
         showDisbursementTransactions: (id: string, query?: {
             limit?: number | undefined;
             offset?: number | undefined;
-        } | undefined, params?: RequestParams) => Promise<HttpResponse<Transactions, any>>;
+        } | undefined, params?: RequestParams) => Promise<AxiosResponse<Transactions>>;
         /**
          * @description Get all the wallet accounts relating to a disbursment ID
          *
@@ -2764,7 +2746,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/disbursements/{id}/wallet_accounts
          * @secure
          */
-        showDisbursementWalletAccounts: (id: string, params?: RequestParams) => Promise<HttpResponse<WalletAccount, any>>;
+        showDisbursementWalletAccounts: (id: string, params?: RequestParams) => Promise<AxiosResponse<WalletAccount>>;
         /**
          * @description Get all the bank accounts relating to disbursement ID
          *
@@ -2774,7 +2756,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/disbursements/{id}/bank_accounts
          * @secure
          */
-        showDisbursementBankAccounts: (id: string, params?: RequestParams) => Promise<HttpResponse<BankAccount, any>>;
+        showDisbursementBankAccounts: (id: string, params?: RequestParams) => Promise<AxiosResponse<BankAccount>>;
         /**
          * @description Get all the users relating to disbursement ID
          *
@@ -2784,7 +2766,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/disbursements/{id}/users
          * @secure
          */
-        showDisbursementUsers: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showDisbursementUsers: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Get all the items relating to a disbursement ID
          *
@@ -2794,7 +2776,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/disbursements/{id}/items
          * @secure
          */
-        showDisbursementItems: (id: string, params?: RequestParams) => Promise<HttpResponse<Items, any>>;
+        showDisbursementItems: (id: string, params?: RequestParams) => Promise<AxiosResponse<Items>>;
     };
     items: {
         /**
@@ -2812,7 +2794,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
             search: string;
             created_before?: string;
             created_after?: string;
-        }, params?: RequestParams) => Promise<HttpResponse<Items, any>>;
+        }, params?: RequestParams) => Promise<AxiosResponse<Items>>;
         /**
          * @description Create an **Item**. Items require two **Users**, a buyer and a seller. The `buyer_id` and `seller_id` are your unique user identifiers.
          *
@@ -2822,7 +2804,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request POST:/items
          * @secure
          */
-        createItem: (data: ItemRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        createItem: (data: ItemRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Show details of a specific **Item** using a given `:id`.
          *
@@ -2832,7 +2814,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/items/{id}
          * @secure
          */
-        showItem: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        showItem: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Delete an existing **Item** using a given `:id`.
          *
@@ -2842,7 +2824,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request DELETE:/items/{id}
          * @secure
          */
-        deleteItem: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        deleteItem: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Update an existing **Items** attributes using a given `:id`. Note: An item can only be updated if it’s in `pending` state. Once an item has begun a payment process, you cannot update it.
          *
@@ -2852,7 +2834,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/items/{id}
          * @secure
          */
-        updateItem: (id: string, data: UpdateItemRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        updateItem: (id: string, data: UpdateItemRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Show the seller **User** associated with the **Item** using a given `:id`.
          *
@@ -2862,7 +2844,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/items/{id}/sellers
          * @secure
          */
-        showItemSeller: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showItemSeller: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Show the buyer **User** associated with the **Item** using a given `:id`.
          *
@@ -2872,7 +2854,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/items/{id}/buyers
          * @secure
          */
-        showItemBuyer: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleUser, any>>;
+        showItemBuyer: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleUser>>;
         /**
          * @description Show the **Fees** associated with the **Item** using a given `:id`.
          *
@@ -2882,7 +2864,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/items/{id}/fees
          * @secure
          */
-        showItemFees: (id: string, params?: RequestParams) => Promise<HttpResponse<Fees, any>>;
+        showItemFees: (id: string, params?: RequestParams) => Promise<AxiosResponse<Fees>>;
         /**
          * @description Show the **Item** wire payment details using a given `:id`.
          *
@@ -2892,7 +2874,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/items/{id}/wire_details
          * @secure
          */
-        showItemWireDetails: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleWireDetailsWithId, any>>;
+        showItemWireDetails: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleWireDetailsWithId>>;
         /**
          * @description Retrieve an ordered and paginated list of **Transactions** associated with the **Item** using a given `:id`.
          *
@@ -2902,7 +2884,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/items/{id}/transactions
          * @secure
          */
-        listItemTransactions: (id: string, params?: RequestParams) => Promise<HttpResponse<Transactions, any>>;
+        listItemTransactions: (id: string, params?: RequestParams) => Promise<AxiosResponse<Transactions>>;
         /**
          * @description Retrieve an ordered and paginated list of **Batch Transactions** associated with the `Item` using a given `:id`. This will include both direct debits coming in, and the disbursements going out.
          *
@@ -2912,7 +2894,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/items/{id}/batch_transactions
          * @secure
          */
-        listItemBatchTransactions: (id: string, params?: RequestParams) => Promise<HttpResponse<ListBatchTransactions, any>>;
+        listItemBatchTransactions: (id: string, params?: RequestParams) => Promise<AxiosResponse<ListBatchTransactions>>;
         /**
          * @description Show the status of an **Item** using a given `:id`.
          *
@@ -2922,7 +2904,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request GET:/items/{id}/status
          * @secure
          */
-        showItemStatus: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleStatus, any>>;
+        showItemStatus: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleStatus>>;
         /**
          * @description Make a payment for an **Item**. Pass the `:account_id` of a **Bank Account** or a **Card Account** associated with the **Item’s** buyer. The **Item** state will transition to one of `payment_held`, `payment_pending` or `completed` for an **Express** or **Approve** payment type.
          *
@@ -2932,7 +2914,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/items/{id}/make_payment
          * @secure
          */
-        makePayment: (id: string, data: AccountIdRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        makePayment: (id: string, data: AccountIdRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Cancel an **Item**. This will transition the **Item** state to `cancelled`. **Items** can only be cancelled if they haven’t been actioned in any other way.
          *
@@ -2942,7 +2924,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/items/{id}/cancel
          * @secure
          */
-        cancelItem: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        cancelItem: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Refund an **Item**’s funds. A partial `amount` can be specified otherwise the full amount will be refunded. This will transition the **Item** state to ‘refunded’ if the full amount is refunded, or to the previously held state if a partial `amount` is specified.
          *
@@ -2952,7 +2934,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/items/{id}/refund
          * @secure
          */
-        refund: (id: string, data: RefundRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        refund: (id: string, data: RefundRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Where pre-authentication is enabled on a platform, initiates a credit card payment authorization for an item. When an authorization is successful, your platform holds the item amount for capture, but there is no transfer of funds happening. This call is used with the Capture Payment or Void Payment calls.
          *
@@ -2962,7 +2944,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/items/{id}/authorize_payment
          * @secure
          */
-        authorizePayment: (id: string, data: CardAccountIdRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        authorizePayment: (id: string, data: CardAccountIdRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Where pre-authentication is enabled on a platform, completes a credit card payment for an item whose payment is authorized. This call is used with the Authorize Payment call.
          *
@@ -2972,7 +2954,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/items/{id}/capture_payment
          * @secure
          */
-        capturePayment: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        capturePayment: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Where pre-authentication is enabled on a platform, voids the `payment_authorized` status for an item. This call is used with the Authorize Payment call. **Note**: Not all payment gateways support the Void Payment API call. In this case, you can wait until a payment authorization expires. A payment authorisation expires after 3 to 6 days if not captured.
          *
@@ -2982,7 +2964,7 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/items/{id}/void_payment
          * @secure
          */
-        voidPayment: (id: string, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        voidPayment: (id: string, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
         /**
          * @description Included for legacy purposes for existing customers that use Escrow payments which are no longer supported for new flows/customers. Release funds held in escrow from an **Item** with an **Escrow** or **Escrow Partial Release** payment type.  This will transition the **Item** state to `completed`.
          *
@@ -2992,7 +2974,6 @@ export declare class Api<SecurityDataType extends unknown> extends HttpClient<Se
          * @request PATCH:/items/{id}/release_payment
          * @secure
          */
-        releasePayment: (id: string, data: ReleasePaymentRequestBody, params?: RequestParams) => Promise<HttpResponse<SingleItem, any>>;
+        releasePayment: (id: string, data: ReleasePaymentRequestBody, params?: RequestParams) => Promise<AxiosResponse<SingleItem>>;
     };
 }
-export {};
