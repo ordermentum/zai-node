@@ -6580,6 +6580,13 @@ components:
               type: integer
     item:
       type: object
+      required:
+        - id
+        - name
+        - amount
+        - payment_type
+        - buyer_id
+        - seller_id
       properties:
         id:
           type: string
@@ -7062,6 +7069,11 @@ components:
               type: string
     batch_transaction:
       type: object
+      required:
+        - id
+        - amount
+        - created_at
+        - updated_at
       properties:
         id:
           type: string
@@ -8263,7 +8275,7 @@ components:
           default: 7fac6c60-6f5b-0138-eb9a-0a58a9feac03
         amount:
           description: Amount for direct debit in cents
-          type: string
+          type: integer
           example: 100
           default: 100
     fee_requestBody:
@@ -8295,7 +8307,7 @@ components:
           default: '2'
         amount:
           description: 'Amount in cents; if the fee type is percentage, then this shows the percentage in hundredths (For example, an amount of 5 refers to 0.05% in fees.)'
-          type: string
+          type: integer
           example: 200
           default: 200
         cap:
@@ -8304,11 +8316,11 @@ components:
           example: ''
         min:
           description: Minimum Fee
-          type: string
+          type: integer
           example: ''
         max:
           description: Maximum Fee
-          type: string
+          type: integer
           example: ''
         to:
           description: 'Who pays the Fee. Allowed values are (buyer or seller). If this field has a value of buyer, then the buyer will have to pay the fee on top of the actual payment (example for an item of 100 and a fee of 2, then the buyer would have to pay 102) If this field has a value of seller, then the seller will end up receiving the amount - the fee (example for an item of 100 and a fee of 2, then the seller would end up receiving 98)'
@@ -8339,7 +8351,7 @@ components:
           example: 'Test Charge 001'
         amount:
           description: The cost being charged in cents.
-          type: string
+          type: integer
           example: '1000'
           default: '1000'
         email:
@@ -8654,7 +8666,7 @@ components:
           default: 'Item 7190770-1-2908'
         amount:
           description: The cost in cents
-          type: string
+          type: integer
           example: '102'
           default: '102'
         currency:
@@ -8710,7 +8722,7 @@ components:
       properties:
         amount:
           description: The cost in cents
-          type: string
+          type: integer
           example: '102'
         name:
           description: A name for the item
@@ -8759,7 +8771,7 @@ components:
       properties:
         refund_amount:
           description: 'For partial refunds, if they are enabled for marketplace.'
-          type: string
+          type: integer
           example: ''
         refund_message:
           description: Reason for the request.
@@ -8788,7 +8800,7 @@ components:
       properties:
         release_amount:
           description: Partial amount to be released in cents
-          type: string
+          type: integer
           example: ''
         flag_release:
           description: to be used if release flagging enabled for your marketplace

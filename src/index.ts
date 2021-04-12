@@ -320,10 +320,10 @@ export interface Items {
 
 export interface Item {
   /** @example 100fd4a0-0538-11e6-b512-3e1d05defe78 */
-  id?: string;
+  id: string;
 
   /** @example Landscaping Job #001 */
-  name?: string;
+  name: string;
 
   /** @example Planting of natives, removal of tree stump. */
   description?: string;
@@ -385,7 +385,7 @@ export interface Item {
     | 22680;
 
   /** @example 20000 */
-  amount?: number;
+  amount: number;
 
   /** @example 2 */
   payment_type_id?: number;
@@ -650,13 +650,13 @@ export interface ListBatchTransactions {
 }
 
 export interface BatchTransaction {
-  id?: string;
+  id: string;
 
   /** @format date-time */
-  created_at?: string;
+  created_at: string;
 
   /** @format date-time */
-  updated_at?: string;
+  updated_at: string;
 
   /** @example 12200 */
   status?: string;
@@ -741,7 +741,7 @@ export interface BatchTransaction {
   refund_state?: string;
 
   /** @example 9800 */
-  amount?: number;
+  amount: number;
 
   /** @example AUD */
   currency?: string;
@@ -1571,7 +1571,7 @@ export interface DirectDebitAuthorityRequestBody {
    * Amount for direct debit in cents
    * @example 100
    */
-  amount: string;
+  amount: number;
 }
 
 export interface FeeRequestBody {
@@ -1596,7 +1596,7 @@ export interface FeeRequestBody {
    * Amount in cents; if the fee type is percentage, then this shows the percentage in hundredths (For example, an amount of 5 refers to 0.05% in fees.)
    * @example 200
    */
-  amount: string;
+  amount: number;
 
   /**
    * Cap the Fee
@@ -1608,13 +1608,13 @@ export interface FeeRequestBody {
    * Minimum Fee
    * @example
    */
-  min?: string;
+  min?: number;
 
   /**
    * Maximum Fee
    * @example
    */
-  max?: string;
+  max?: number;
 
   /**
    * Who pays the Fee. Allowed values are (buyer or seller). If this field has a value of buyer, then the buyer will have to pay the fee on top of the actual payment (example for an item of 100 and a fee of 2, then the buyer would have to pay 102) If this field has a value of seller, then the seller will end up receiving the amount - the fee (example for an item of 100 and a fee of 2, then the seller would end up receiving 98)
@@ -1640,7 +1640,7 @@ export interface ChargeRequestBody {
    * The cost being charged in cents.
    * @example 1000
    */
-  amount: string;
+  amount: number;
 
   /**
    * Email of the user associated with the account being charged.
@@ -2021,7 +2021,7 @@ export interface ItemRequestBody {
    * The cost in cents
    * @example 102
    */
-  amount: string;
+  amount: number;
 
   /**
    * [ISO 4217 alpha-3](https://en.wikipedia.org/wiki/ISO_4217#Active_codes) currency code. This is an optional field and if not provided, the item will be created with the default currency of the marketplace.
@@ -2089,7 +2089,7 @@ export interface UpdateItemRequestBody {
    * The cost in cents
    * @example 102
    */
-  amount?: string;
+  amount?: number;
 
   /**
    * A name for the item
@@ -2153,7 +2153,7 @@ export interface RefundRequestBody {
    * For partial refunds, if they are enabled for marketplace.
    * @example
    */
-  refund_amount?: string;
+  refund_amount?: number;
 
   /**
    * Reason for the request.
@@ -2187,7 +2187,7 @@ export interface ReleasePaymentRequestBody {
    * Partial amount to be released in cents
    * @example
    */
-  release_amount?: string;
+  release_amount?: number;
 
   /**
    * to be used if release flagging enabled for your marketplace
