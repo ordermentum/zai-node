@@ -74,6 +74,8 @@ export class Client implements ClientInterface {
 
   authClient: AuthClient;
 
+  refreshedAt?: Date;
+
   constructor({
     baseURL = 'https://secure.api.promisepay.com/',
     authBaseURL = 'https://au-0000.auth.assemblypay.com/',
@@ -117,18 +119,40 @@ export class Client implements ClientInterface {
   }
 
   async refresh() {
-    this.token = await tokens(this.authClient).token({
-      client_id: this.clientId,
-      client_secret: this.clientSecret,
-      scope: this.scope,
-      grant_type: 'client_credentials',
-    });
+    await tokens(this.authClient)
+      .token({
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        scope: this.scope,
+        grant_type: 'client_credentials',
+      })
+      .then(resp => {
+        this.token = resp;
+        this.refreshedAt = new Date();
+      });
+  }
+
+  async conditionalRefresh(secure: boolean) {
+    if (!secure) {
+      return;
+    }
+
+    if (!this.token || !this.refreshedAt) {
+      await this.refresh();
+      return;
+    }
+
+    const expires = this?.token?.expires_in ?? 0;
+    // expires in the next 10 minutes
+    const window = new Date(this.refreshedAt.getTime() + expires * 1000 - 6000);
+    const expired = new Date() > window;
+    if (expired) {
+      await this.refresh();
+    }
   }
 
   async request<T = any, _E = any>(params: RequestParams): Promise<T> {
-    if (params.secure && !this.token) {
-      await this.refresh();
-    }
+    await this.conditionalRefresh(params.secure);
     const headers = this.getHeaders(params.secure);
     return this.instance
       .request<T>({ ...params, headers })

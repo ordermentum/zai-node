@@ -1,6 +1,6 @@
 {
   "name": "assembly-payments",
-  "version": "0.2.0-beta1",
+  "version": "0.2.0-beta2",
   "description": "Assembly Payments API Typescript/Javascript Bindings",
   "main": "lib/index.js",
   "repository": "git@github.com:ordermentum/assembly-payments-node.git",
