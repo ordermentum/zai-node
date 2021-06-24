@@ -144,7 +144,9 @@ export class Client implements ClientInterface {
 
     const expires = this?.token?.expires_in ?? 0;
     // expires in the next 10 minutes
-    const window = new Date(this.refreshedAt.getTime() + expires * 1000 - 6000);
+    const ten = 1000 * 10 * 60;
+    const future = expires * 1000;
+    const window = new Date(this.refreshedAt.getTime() + future - ten);
     const expired = new Date() > window;
     if (expired) {
       await this.refresh();
