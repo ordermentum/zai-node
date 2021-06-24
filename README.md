@@ -10,7 +10,7 @@
 
 An (unofficial) Assembly Payments Typescript/Javascript client
 
-swagger generated - https://reference.assemblypayments.com/
+types are swagger generated from - https://reference.assemblypayments.com/
 
 # Usage
 
@@ -49,7 +49,7 @@ yarn run test
 Copy swagger.yaml file into root directory and run
 
 ```bash
-  npx swagger-typescript-api -p ./swagger.yaml -o ./src -n index.ts --axios
+  npx swagger-typescript-api -p ./swagger.yaml -o ./src -n types.ts --no-client
 ```
 
 ## Example
