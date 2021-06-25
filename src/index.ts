@@ -1,6 +1,6 @@
 import accounts from './resources/accounts';
 import bankAccounts from './resources/bank_accounts';
-import batchTransactions from './resources/batch_transctions';
+import batchTransactions from './resources/batch_transactions';
 import bpayAccounts from './resources/bpay_accounts';
 import callbacks from './resources/callbacks';
 
