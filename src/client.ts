@@ -20,6 +20,7 @@ type ClientOptions = {
   authBaseURL?: string;
   clientId: string;
   clientSecret: string;
+  timeout?: number;
   scope: string;
 };
 export interface ClientInterface {
@@ -81,6 +82,7 @@ export class Client implements ClientInterface {
     authBaseURL = 'https://au-0000.auth.assemblypay.com/',
     clientId,
     clientSecret,
+    timeout = 180 * 1000,
     scope,
   }: ClientOptions) {
     this.clientId = clientId;
@@ -90,6 +92,7 @@ export class Client implements ClientInterface {
     this.authBaseURL = authBaseURL;
     this.instance = axios.create({
       baseURL,
+      timeout,
       responseType: 'json',
     });
 
