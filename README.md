@@ -10,7 +10,7 @@
 
 An (unofficial) Assembly Payments Typescript/Javascript client
 
-swagger generated - https://reference.assemblypayments.com/
+types are swagger generated from - https://reference.assemblypayments.com/
 
 # Usage
 
@@ -44,44 +44,38 @@ yarn run test
 
 👤 **engineering@ordermentum.com**
 
-## Generating updated client
+## Generating updated types
 
 Copy swagger.yaml file into root directory and run
 
 ```bash
-  npx swagger-typescript-api -p ./swagger.yaml -o ./src -n index.ts --axios
+  npx swagger-typescript-api -p ./swagger.yaml -o ./src -n types.ts --no-client
 ```
 
 ## Example
 
 ```javascript
-import { Api } from 'assembly-payments';
+import { createClient } from 'assembly-payments';
 
-const authClient = new Api({
-  baseURL: 'https://au-0000.auth.assemblypay.com/',
-});
+const baseURL = process.env.AP_SANDPIT
+  ? 'https://test.api.promisepay.com/'
+  : 'https://secure.api.promisepay.com/';
 
-const tokenResponse = await authClient.tokens.token({
-  client_id: process.env.AP_CLIENT_ID,
-  client_secret: process.env.AP_CLIENT_SECRET,
-  grant_type: 'client_credentials',
+const authBaseURL = process.env.AP_SANDPIT
+  ? 'https://au-0000.sandbox.auth.assemblypay.com/'
+  : 'https://au-0000.auth.assemblypay.com/';
+
+export const client = createClient({
+  clientId: process.env.AP_CLIENT_ID,
+  clientSecret: process.env.AP_CLIENT_SECRET,
   scope: process.env.AP_CLIENT_SCOPE,
+  baseURL,
+  authBaseURL,
 });
 
-const token = tokenResponse.data.access_token;
-const securityWorker = async (data) => ({
-  headers: {
-    Authorization: `Bearer ${data.token}`,
-  },
-});
-const client = new Api({
-  securityWorker,
-  baseURL: 'https://secure.api.promisepay.com/',
-});
-
-client.setSecurityData({ token });
 const itemResponse = await client.items.showItem(
   '6865E25F-3CFE-4C8C-8673-9231E0A19CF5'
 );
-console.log(itemResponse.data.items);
+
+console.log(itemResponse.items);
 ```
