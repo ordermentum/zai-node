@@ -8,7 +8,7 @@ const main = async () => {
   });
 
   const itemResponse = await client.items.showItem(
-    'E2A79013-1BC5-4852-B8EC-A442EBBE9EEA'
+    '865E25F-3CFE-4C8C-8673-9231E0A19CF5'
   );
   console.log(itemResponse);
 };

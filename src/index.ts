@@ -4,7 +4,7 @@ import batchTransactions from './resources/batch_transactions';
 import bpayAccounts from './resources/bpay_accounts';
 import callbacks from './resources/callbacks';
 
-import Client from './client';
+import Client, { ClientOptions } from './client';
 import transactions from './resources/transactions';
 import companies from './resources/companies';
 import cardAccounts from './resources/card_accounts';
@@ -28,13 +28,15 @@ export function createClient({
   clientId,
   clientSecret,
   scope,
-}) {
+  logger,
+}: ClientOptions) {
   const client = new Client({
     baseURL,
     authBaseURL,
     clientId,
     clientSecret,
     scope,
+    logger,
   });
 
   const api = {

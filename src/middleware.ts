@@ -25,6 +25,10 @@ export function expiredToken(client: Client, retries = 5) {
     if (!accessDenied && status === 401 && canTry) {
       config.expiredTokenRetry += 1;
 
+      client.logger.debug(
+        `requested failed, refreshing token attempt ${config.expiredTokenRetry}`
+      );
+
       try {
         await client.refresh();
         config.headers.Authorization = `Bearer ${client?.token?.access_token}`;
