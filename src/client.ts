@@ -11,7 +11,6 @@ import bunyan from 'bunyan';
 import { expiredToken } from './middleware';
 import tokens from './resources/tokens';
 import { TokensResponse } from './types';
-import pack from '../package.json';
 
 export type RequestParams = AxiosRequestConfig & {
   secure: boolean;
@@ -145,7 +144,7 @@ export class Client implements ClientInterface {
 
   getHeaders(secure = true) {
     const headers = {
-      'User-Agent': `Assembly Payments Node ${pack.version}`,
+      'User-Agent': `Assembly Payments Node`,
     };
 
     if (secure) {
