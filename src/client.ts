@@ -11,6 +11,7 @@ import bunyan from 'bunyan';
 import { expiredToken } from './middleware';
 import tokens from './resources/tokens';
 import { TokensResponse } from './types';
+import pack from '../package.json';
 
 export type RequestParams = AxiosRequestConfig & {
   secure: boolean;
@@ -21,6 +22,7 @@ export type ClientOptions = {
   authBaseURL?: string;
   clientId: string;
   clientSecret: string;
+  retries?: number;
   timeout?: number;
   logger?: bunyan;
   scope: string;
@@ -93,6 +95,8 @@ export class Client implements ClientInterface {
 
   scope: string;
 
+  retries: number;
+
   token?: TokensResponse;
 
   authClient: AuthClient;
@@ -112,6 +116,7 @@ export class Client implements ClientInterface {
     clientSecret,
     timeout = 180 * 1000,
     logger,
+    retries = 3,
     scope,
   }: ClientOptions) {
     this.clientId = clientId;
@@ -120,6 +125,7 @@ export class Client implements ClientInterface {
     this.scope = scope;
     this.authBaseURL = authBaseURL;
     this.logger = logger ?? getDefaultLogger();
+    this.retries = retries;
     this.instance = axios.create({
       baseURL,
       timeout,
@@ -134,12 +140,12 @@ export class Client implements ClientInterface {
       scope,
     });
 
-    expiredToken(this, 3);
+    expiredToken(this, this.retries);
   }
 
   getHeaders(secure = true) {
     const headers = {
-      'User-Agent': `Assembly Payments Node 1.0`,
+      'User-Agent': `Assembly Payments Node ${pack.version}`,
     };
 
     if (secure) {
