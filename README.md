@@ -1,4 +1,4 @@
-<h1 align="center">Assembly Payments (Node.js Client)</h1>
+<h1 align="center">Zai Node.js Client</h1>
 <p>
   <a href="https://www.npmjs.com/package/assembly-payments" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/assembly-payments.svg">
@@ -8,9 +8,9 @@
   </a>
 </p>
 
-An (unofficial) Assembly Payments Typescript/Javascript client
+An (unofficial) Zai Typescript/Javascript client
 
-types are swagger generated from - https://reference.assemblypayments.com/
+types are swagger generated from - https://developer.hellozai.com/reference/overview
 
 # Usage
 
