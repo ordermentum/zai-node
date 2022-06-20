@@ -17,13 +17,13 @@ types are swagger generated from - https://developer.hellozai.com/reference/over
 yarn
 
 ```sh
-yarn add assembly-payments
+yarn add zai-payments
 ```
 
 npm
 
 ```sh
-npm install --save assembly-payments
+npm install --save zai-payments
 ```
 
 ## Contributing
