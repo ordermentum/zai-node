@@ -69,6 +69,32 @@ export default (client: Client) => ({
     }),
 
   /**
+   * @description Show the **Supplementary Data** associated with the **Transaction** using a given `:id`.
+   *
+   * @tags Transactions
+   * @name ShowTransactionSupplementaryData
+   * @summary Show Transaction Supplementary Data
+   * @request GET:/transactions/{id}/supplementary_data
+   * @secure
+   */
+  showSupplementaryData: (id: string) => 
+    client.request<{
+      id: string;
+      debtor_name: string;
+      debtor_bsb: string;
+      debtor_account: string;
+      creditor_account: string;
+      creditor_name: string;
+      remittance_information: string;
+      type: string;
+      type_method: string;
+      npp_details: any;
+    }>({
+    url: `/transactions/${id}/supplementary_data`,
+    method: 'GET',
+    secure: true,
+  }),
+  /**
    * @description Show details of a specific **Transaction** using a given `:id`.
    *
    * @tags Transactions

@@ -161,6 +161,7 @@ export interface WalletAccount {
       transactions?: object;
       bpay_details?: object;
       npp_details?: object;
+      virtual_accounts?: object;
     };
   };
 }
@@ -651,6 +652,7 @@ export interface ListBatchTransactions {
 
 export interface BatchTransaction {
   id: string;
+  reference_id?: string;
 
   /** @format date-time */
   created_at: string;
@@ -1002,6 +1004,9 @@ export interface Transaction {
   /** @example 7a138862-f821-412d-a91e-367ed7391fe7 */
   id?: string;
 
+  /** @example 7190770-1-2908 */
+  reference_id?: string;
+
   /** @format date-time */
   created_at?: string;
 
@@ -1085,6 +1090,7 @@ export interface Transaction {
     items?: string;
     marketplaces?: string;
     npp_payin_transaction_detail?: string;
+    supplementary_data?: string;
   };
 }
 
@@ -1100,6 +1106,9 @@ export interface SingleDisbursement {
 export interface Disbursement {
   /** @example ad688d54-6791-4f1d-add7-88fbd89b70d1 */
   id?: string;
+
+  /** @example 7190770-1-2908 */
+  reference_id?: string;
 
   /** @example 10000 */
   amount?: number;
@@ -1415,12 +1424,6 @@ export interface BillPaymentRequestBody {
 }
 
 export interface CallbackRequestBody {
-  /**
-   * Description to identify the callback
-   * @example Users Callback
-   */
-  description: string;
-
   /**
    * URL to which the callbacks will notify
    * @example https://httpbin.org
@@ -1988,6 +1991,12 @@ export interface WithdrawRequestBody {
    * @example
    */
   custom_descriptor?: string;
+
+  /**
+   * Unique ID information that can be specified by Platforms for wallet withdrawal request. This is an optional field and cannot contain ’.’ character.
+   * @example 7190770-1-2908
+   */
+  reference_id?: string;
 }
 
 export interface DepositRequestBody {
