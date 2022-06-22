@@ -109,7 +109,7 @@ export class Client implements ClientInterface {
   logger: bunyan;
 
   constructor({
-    baseURL = 'https://au-0000.auth.assemblypay.com/',
+    baseURL = 'https://au-0000.api.assemblypay.com/',
     authBaseURL = 'https://au-0000.auth.assemblypay.com/',
     clientId,
     clientSecret,
