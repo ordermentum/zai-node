@@ -54,16 +54,20 @@ Copy swagger.yaml file into root directory and run
 
 ## Example
 
-```javascript
-import { createClient } from 'assembly-payments';
+```typescript
+import { createClient } from "assembly-payments";
 
 const baseURL = process.env.AP_SANDPIT
-  ? 'https://test.api.promisepay.com/'
-  : 'https://secure.api.promisepay.com/';
+  ? "https://test.api.promisepay.com/"
+  : "https://secure.api.promisepay.com/";
 
 const authBaseURL = process.env.AP_SANDPIT
-  ? 'https://au-0000.sandbox.auth.assemblypay.com/'
-  : 'https://au-0000.auth.assemblypay.com/';
+  ? "https://au-0000.sandbox.auth.assemblypay.com/"
+  : "https://au-0000.auth.assemblypay.com/";
+
+const dataURL = process.env.AP_SANDPIT
+  ? "https://sandbox.au-0000.api.assemblypay.com/"
+  : "https://au-0000.api.assemblypay.com/";
 
 export const client = createClient({
   clientId: process.env.AP_CLIENT_ID,
@@ -71,10 +75,11 @@ export const client = createClient({
   scope: process.env.AP_CLIENT_SCOPE,
   baseURL,
   authBaseURL,
+  dataURL,
 });
 
 const itemResponse = await client.items.showItem(
-  '6865E25F-3CFE-4C8C-8673-9231E0A19CF5'
+  "6865E25F-3CFE-4C8C-8673-9231E0A19CF5"
 );
 
 console.log(itemResponse.items);

@@ -77,7 +77,7 @@ export default (client: Client) => ({
    * @request GET:/transactions/{id}/supplementary_data
    * @secure
    */
-  showSupplementaryData: (id: string) => 
+  showSupplementaryData: (id: string) =>
     client.request<{
       id: string;
       debtor_name: string;
@@ -90,10 +90,11 @@ export default (client: Client) => ({
       type_method: string;
       npp_details: any;
     }>({
-    url: `/transactions/${id}/supplementary_data`,
-    method: 'GET',
-    secure: true,
-  }),
+      baseURL: client.dataURL,
+      url: `/transactions/${id}/supplementary_data`,
+      method: 'GET',
+      secure: true,
+    }),
   /**
    * @description Show details of a specific **Transaction** using a given `:id`.
    *

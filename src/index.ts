@@ -23,8 +23,9 @@ import users from './resources/users';
 export * from './types';
 
 export function createClient({
-  baseURL = 'https://secure.api.promisepay.com/',
+  dataURL = 'https://secure.api.promisepay.com/',
   authBaseURL = 'https://au-0000.auth.assemblypay.com/',
+  baseURL = 'https://test.api.promisepay.com/',
   clientId,
   clientSecret,
   scope,
@@ -33,6 +34,7 @@ export function createClient({
   const client = new Client({
     baseURL,
     authBaseURL,
+    dataURL,
     clientId,
     clientSecret,
     scope,

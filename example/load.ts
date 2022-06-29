@@ -9,7 +9,8 @@ async function runner() {
     clientId: CLIENT_ID,
     clientSecret: CLIENT_SECRET,
     scope: CLIENT_SCOPE,
-    baseURL: 'https://au-0000.api.assemblypay.com/',
+    baseURL: 'https://secure.api.promisepay.com',
+    nppUrl: 'https://au-0000.api.assemblypay.com/',
   });
 
   const data = await client.transactions.showSupplementaryData('');

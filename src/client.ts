@@ -19,6 +19,7 @@ export type RequestParams = AxiosRequestConfig & {
 export type ClientOptions = {
   baseURL?: string;
   authBaseURL?: string;
+  dataURL?: string;
   clientId: string;
   clientSecret: string;
   retries?: number;
@@ -92,6 +93,8 @@ export class Client implements ClientInterface {
 
   authBaseURL: string;
 
+  dataURL: string;
+
   scope: string;
 
   retries: number;
@@ -109,7 +112,8 @@ export class Client implements ClientInterface {
   logger: bunyan;
 
   constructor({
-    baseURL = 'https://au-0000.api.assemblypay.com/',
+    dataURL = 'https://au-0000.api.assemblypay.com/',
+    baseURL = 'https://secure.api.promisepay.com',
     authBaseURL = 'https://au-0000.auth.assemblypay.com/',
     clientId,
     clientSecret,
@@ -121,6 +125,7 @@ export class Client implements ClientInterface {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.baseURL = baseURL;
+    this.dataURL = dataURL;
     this.scope = scope;
     this.authBaseURL = authBaseURL;
     this.logger = logger ?? getDefaultLogger();
