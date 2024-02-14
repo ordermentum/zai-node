@@ -1,8 +1,9 @@
 {
   "name": "zai-payments",
-  "version": "0.1.7",
+  "version": "0.2.1",
   "description": "Zai API Typescript/Javascript Bindings",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "repository": "git@github.com:ordermentum/assembly-payments-node.git",
   "author": "John D'Agostino <john@ordermentum.com>",
   "license": "Apache-2",
