@@ -2155,6 +2155,11 @@ export interface AccountIdRequestBody {
    * @example
    */
   cvv?: string;
+
+  /**
+   * Seller User Phone Number or Mobile number
+   */
+  merchant_phone?: string;
 }
 
 export interface RefundRequestBody {
