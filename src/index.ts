@@ -19,6 +19,7 @@ import walletAccounts from './resources/wallet_accounts';
 import tools from './resources/tools';
 import tokens from './resources/tokens';
 import users from './resources/users';
+import request from './resources/request';
 
 export * from './types';
 
@@ -62,6 +63,7 @@ export function createClient({
     walletAccounts: walletAccounts(client),
     transactions: transactions(client),
     tokenAuths: tokenAuths(client),
+    request: request(client),
   };
   return api;
 }

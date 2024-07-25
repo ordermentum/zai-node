@@ -15,7 +15,7 @@ import {
   SingleUser,
   ListBatchTransactions,
   AccountIdRequestBody,
-  SingleItem,
+  SingleItem, AsyncMakePaymentBody,
 } from '../types';
 
 export default (client: Client) => ({
@@ -231,6 +231,23 @@ export default (client: Client) => ({
    */
   makePayment: (id: string, data: AccountIdRequestBody) =>
     client.request<SingleItem>({
+      url: `/items/${id}/make_payment`,
+      method: 'PATCH',
+      data,
+      secure: true,
+    }),
+
+  /**
+   * @description Make a payment for an **Item**. Pass the `:account_id` of a **Bank Account** or a **Card Account** associated with the **Item’s** buyer. The **Item** state will transition to one of `payment_held`, `payment_pending` or `completed` for an **Express** or **Approve** payment type.
+   *
+   * @tags Item Actions
+   * @name AsyncMakePaymentBody
+   * @summary Make Payment (async)
+   * @request PATCH:/items/{id}/make_payment
+   * @secure
+   */
+  makeAsyncPayment: (id: string, data: AccountIdRequestBody) =>
+    client.request<AsyncMakePaymentBody>({
       url: `/items/${id}/make_payment`,
       method: 'PATCH',
       data,

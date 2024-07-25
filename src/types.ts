@@ -2209,3 +2209,13 @@ export interface ReleasePaymentRequestBody {
    */
   flag_release?: boolean;
 }
+
+export interface AsyncMakePaymentBody {
+  last_updated?: string;
+  submission_count?: number;
+  message?: string;
+  links?: {
+    status?: string;
+    callbacks?: string;
+  }
+}
