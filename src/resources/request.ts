@@ -28,9 +28,9 @@ export default (client: Client) => ({
    */
   showRequestCallbacks: (id: string) =>
     client.request<any>({
-        url: `/request/${id}/callbacks`,
-        method: 'GET',
-        secure: true,
+      url: `/request/${id}/callbacks`,
+      method: 'GET',
+      secure: true,
     }),
 
   /**

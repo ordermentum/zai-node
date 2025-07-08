@@ -16,6 +16,14 @@ export type RequestParams = AxiosRequestConfig & {
   secure: boolean;
 };
 
+export type ApiError = {
+  message: string;
+  status: number;
+  statusText: string;
+  data: any;
+  url?: string;
+};
+
 export type ClientOptions = {
   baseURL?: string;
   authBaseURL?: string;
@@ -221,7 +229,22 @@ export class Client implements ClientInterface {
     const headers = this.getHeaders(params.secure);
     const data = await this.instance
       .request<T>({ ...params, headers })
-      .then(resp => resp.data);
+      .then(resp => resp.data)
+      .catch(err => {
+        // Extract API error details for logging
+        const errorDetails: ApiError = {
+          message: err.message,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          url: params.url,
+        };
+
+        this.logger.error({ errorDetails }, `Error in API request`);
+
+        // Throw the original axios error which contains response data
+        throw errorDetails;
+      });
 
     this.logger.debug(`${params.url} elapsed time (ms): ${elapsed(start)}`);
     return data;
