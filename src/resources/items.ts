@@ -15,7 +15,8 @@ import {
   SingleUser,
   ListBatchTransactions,
   AccountIdRequestBody,
-  SingleItem, AsyncMakePaymentBody,
+  SingleItem,
+  AsyncMakePaymentBody,
 } from '../types';
 
 export default (client: Client) => ({
